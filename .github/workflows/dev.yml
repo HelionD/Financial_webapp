@@ -22,7 +22,7 @@ jobs:
       # Keeping the same tag because no need to create new images in Dev environment.
       - name: Build Docker image
         run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/finance_web_dev:v1 .
+          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/finance_web_dev:v1 -f docker/Dockerfile.dev .
 
       - name: Push to Docker Hub
         run: |
