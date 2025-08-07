@@ -3,17 +3,18 @@ version: '3.8'
 services:
   app:
     container_name: finance-app-dev
+    image: helion444/finance_webapp_dev:v1
     build:
-      context: . #Context is from the current dir.
+      context: .
       dockerfile: docker/Dockerfile.dev
     ports:
       - "5000:5000"
-    volumes: #Mount current directory to /app folder in the container.
+    volumes:
       - .:/app
-    env_file: #It will use the .env.dev file for env vars used in the development environment.
+    env_file:
       - .env.dev
     restart: unless-stopped
-    networks: #The network created for this app.
+    networks:
       - finance
 
 networks:
