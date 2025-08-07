@@ -24,4 +24,4 @@ This project is open source and available under the MIT License.
 
 ## NOTE
 
-This project is under construction 🚧
+This project is under construction 🚧.
