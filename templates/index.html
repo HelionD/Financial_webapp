@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Financial Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Use Chart.js as primary charting library
+        window.useChartJS = true;
+        console.log('Chart.js loaded successfully');
+    </script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-chart-line"></i> Advanced Financial Dashboard</h1>
+            <div class="last-updated">
+                <i class="fas fa-sync-alt"></i> Last updated: <span id="last-updated">Loading...</span>
+                <button id="refresh-btn"><i class="fas fa-redo"></i> Refresh</button>
+            </div>
+        </header>
+
+        <div class="dashboard-grid">
+            <!-- Forex Section -->
+            <div class="dashboard-card">
+                <h2><i class="fas fa-exchange-alt"></i> Forex</h2>
+                <div class="chart-container">
+                    <div id="forexChart">
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                        </div>
+                    </div>
+                </div>
+                <div class="price-grid" id="forexPrices"></div>
+                <div class="market-stats" id="forexStats">
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-label">Top Gainer</span>
+                            <span class="stat-value" id="forexTopGainer">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Top Loser</span>
+                            <span class="stat-value" id="forexTopLoser">-</span>
+                        </div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-label">Avg Change</span>
+                            <span class="stat-value" id="forexAvgChange">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Volatility</span>
+                            <span class="stat-value" id="forexVolatility">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Crypto Section -->
+            <div class="dashboard-card">
+                <h2><i class="fab fa-bitcoin"></i> Cryptocurrencies</h2>
+                <div class="chart-container">
+                    <div id="cryptoChart">
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                        </div>
+                    </div>
+                </div>
+                <div class="price-grid" id="cryptoPrices"></div>
+                <div class="market-stats" id="cryptoStats">
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-label">Top Gainer</span>
+                            <span class="stat-value" id="cryptoTopGainer">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Top Loser</span>
+                            <span class="stat-value" id="cryptoTopLoser">-</span>
+                        </div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-label">Market Cap</span>
+                            <span class="stat-value" id="cryptoMarketCap">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">24h Volume</span>
+                            <span class="stat-value" id="cryptoVolume">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stocks Section -->
+            <div class="dashboard-card">
+                <h2><i class="fas fa-chart-bar"></i> Stocks</h2>
+                <div class="chart-container">
+                    <div id="stocksChart">
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                        </div>
+                    </div>
+                </div>
+                <div class="price-grid" id="stocksPrices"></div>
+                <div class="market-stats" id="stocksStats">
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-label">Top Gainer</span>
+                            <span class="stat-value" id="stocksTopGainer">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Top Loser</span>
+                            <span class="stat-value" id="stocksTopLoser">-</span>
+                        </div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-label">P/E Ratio</span>
+                            <span class="stat-value" id="stocksPERatio">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Dividend Yield</span>
+                            <span class="stat-value" id="stocksDividend">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Commodities Section -->
+            <div class="dashboard-card">
+                <h2><i class="fas fa-gas-pump"></i> Commodities</h2>
+                <div class="chart-container">
+                    <div id="commoditiesChart">
+                        <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #666;">
+                            <i class="fas fa-spinner fa-spin"></i> Loading chart...
+                        </div>
+                    </div>
+                </div>
+                <div class="price-grid" id="commoditiesPrices"></div>
+                <div class="market-stats" id="commoditiesStats">
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-label">Top Gainer</span>
+                            <span class="stat-value" id="commoditiesTopGainer">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Top Loser</span>
+                            <span class="stat-value" id="commoditiesTopLoser">-</span>
+                        </div>
+                    </div>
+                    <div class="stats-row">
+                        <div class="stat-item">
+                            <span class="stat-label">Supply Status</span>
+                            <span class="stat-value" id="commoditiesSupply">-</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Demand Trend</span>
+                            <span class="stat-value" id="commoditiesDemand">-</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="news-feed">
+            <h2><i class="far fa-newspaper"></i> Financial News</h2>
+            <div id="news-items"></div>
+        </div>
+    </div>
+
+    <script src="/static/js/script.js"></script>
+</body>
+</html>
