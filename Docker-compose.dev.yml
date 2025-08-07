@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: finance-app-dev
+    build:
+      context: . #Context is from the current dir.
+      dockerfile: docker/Dockerfile.dev
+    ports:
+      - "5000:5000"
+    volumes: #Mount current directory to /app folder in the container.
+      - .:/app
+    env_file: #It will use the .env.dev file for env vars used in the development environment.
+      - .env.dev
+    restart: unless-stopped
+    networks: #The network created for this app.
+      - finance
+
+networks:
+  finance:
+    driver: bridge
