@@ -18,10 +18,6 @@ A real-time financial dashboard with candlestick charts for Forex, Cryptocurrenc
 - **HTTP Client**: Axios
 - **Styling**: Font Awesome icons
 
-## License
-
-This project is open source and available under the MIT License.
-
 ## NOTE
 
 This project is under construction 🚧.
