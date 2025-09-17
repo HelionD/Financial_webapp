@@ -32,10 +32,6 @@ if not app.debug:
     app.logger.addHandler(handler)
     app.logger.setLevel(logging.INFO)
 
-# API Keys - you'll need to get these from the respective services
-ALPHA_VANTAGE_API_KEY = os.getenv('ALPHA_VANTAGE_API_KEY', 'demo')
-YAHOO_FINANCE_API_KEY = os.getenv('YAHOO_FINANCE_API_KEY', 'demo')
-
 # Enhanced data structure with more symbols
 SYMBOLS = {
     'forex': ['EUR/USD', 'GBP/USD', 'USD/JPY', 'AUD/USD', 'USD/CAD', 'USD/CHF', 'NZD/USD'],
@@ -52,7 +48,7 @@ COMMODITY_NAMES = {
     'HG=F': 'Copper'
 }
 
-# Store historical OHLC data
+# Store historical OHLC data (in-memory only, no database)
 historical_data = {
     'forex': {},
     'crypto': {},
@@ -60,7 +56,7 @@ historical_data = {
     'commodities': {}
 }
 
-# Global market data cache
+# Global market data cache (in-memory only)
 market_data_cache = {}
 
 def generate_mock_ohlc_data(symbol, market_type):
@@ -156,8 +152,10 @@ def calculate_market_stats():
     }
 
 def fetch_real_data():
-    """Generate enhanced mock data for demo purposes"""
+    """Generate enhanced mock data for demo purposes - no external APIs or database"""
     global market_data_cache
+    
+    print("📊 Generating fresh market data...")
     
     data = {
         'forex': {},
@@ -173,7 +171,7 @@ def fetch_real_data():
             # Generate mock data
             ohlc_data = generate_mock_ohlc_data(symbol, market_type)
             
-            # Store the data
+            # Store the data in memory
             historical_data[market_type][symbol] = ohlc_data
             
             # Get current price (latest close)
@@ -198,188 +196,164 @@ def fetch_real_data():
                 
                 data[market_type][symbol] = price_data
     
-    # Cache the data
+    # Cache the data in memory
     market_data_cache = data
     
     # Add market statistics
     stats = calculate_market_stats()
     data['market_stats'] = stats
     
+    print(f"✅ Generated data for {sum(len(v) for k, v in data.items() if k not in ['last_updated', 'market_stats'])} instruments")
     return data
 
 @app.route('/')
 def index():
+    """Serve the main dashboard page"""
     return render_template('index.html')
 
 @app.route('/api/prices')
 def get_prices():
-    """Get current market prices"""
-    return jsonify(fetch_real_data())
+    """API endpoint to get current market prices"""
+    try:
+        data = fetch_real_data()
+        return jsonify(data)
+    except Exception as e:
+        print(f"❌ Error in /api/prices: {e}")
+        return jsonify({'error': 'Failed to fetch market data'}), 500
 
 @app.route('/api/historical/<market_type>/<path:symbol>')
 def get_historical_data(market_type, symbol):
     """API endpoint to get historical OHLC data for a specific symbol"""
-    # Ensure data is populated
-    if not historical_data.get(market_type, {}).get(symbol):
-        fetch_real_data()
-    
-    if market_type in historical_data and symbol in historical_data[market_type]:
-        return jsonify(historical_data[market_type][symbol])
-    return jsonify([])
+    try:
+        # Ensure data is populated
+        if not historical_data.get(market_type, {}).get(symbol):
+            fetch_real_data()
+        
+        if market_type in historical_data and symbol in historical_data[market_type]:
+            return jsonify(historical_data[market_type][symbol])
+        else:
+            return jsonify([])
+    except Exception as e:
+        print(f"❌ Error in /api/historical: {e}")
+        return jsonify({'error': 'Failed to fetch historical data'}), 500
 
 @app.route('/api/news')
 def get_news():
-    """Get enhanced mock news data with realistic timestamps"""
-    current_time = datetime.now()
-    
-    news_items = [
-        {
-            "id": 1,
-            "title": "Federal Reserve Maintains Interest Rates Amid Economic Uncertainty",
-            "source": "Federal Reserve",
-            "time": "2 hours ago",
-            "timestamp": (current_time - timedelta(hours=2)).isoformat(),
-            "summary": "The Federal Reserve decided to hold interest rates steady at 5.25%-5.50% as inflation shows signs of cooling but remains above target levels. Chair Powell emphasized data-dependent approach.",
-            "tags": ["Fed", "Interest Rates", "Economy", "Inflation"],
-            "category": "monetary_policy",
-            "importance": "high",
-            "market_impact": "positive"
-        },
-        {
-            "id": 2,
-            "title": "Bitcoin Surges Past $115,000 as Institutional Adoption Accelerates",
-            "source": "CoinDesk",
-            "time": "3 hours ago",
-            "timestamp": (current_time - timedelta(hours=3)).isoformat(),
-            "summary": "Bitcoin reached a new all-time high above $115,000 driven by increased corporate treasury adoption and regulatory clarity. MicroStrategy announced additional $500M purchase plan.",
-            "tags": ["Bitcoin", "Crypto", "ATH", "Institutional"],
-            "category": "cryptocurrency",
-            "importance": "high",
-            "market_impact": "positive"
-        },
-        {
-            "id": 3,
-            "title": "Apple Reports Record Q4 Earnings Despite China Headwinds",
-            "source": "Apple Inc.",
-            "time": "4 hours ago",
-            "timestamp": (current_time - timedelta(hours=4)).isoformat(),
-            "summary": "Apple exceeded analysts' expectations with $89.5B in quarterly revenue, driven by strong iPhone 15 sales and growing services business. Stock up 3.2% in after-hours trading.",
-            "tags": ["Apple", "Earnings", "Tech", "iPhone"],
-            "category": "earnings",
-            "importance": "medium",
-            "market_impact": "positive"
-        },
-        {
-            "id": 4,
-            "title": "Oil Prices Surge 4.2% After OPEC+ Production Cut Extension", 
-            "source": "Reuters",
-            "time": "5 hours ago",
-            "timestamp": (current_time - timedelta(hours=5)).isoformat(),
-            "summary": "Crude oil futures jumped following OPEC+'s decision to extend production cuts through Q2 2025. Brent crude now trading above $92 per barrel amid supply concerns.",
-            "tags": ["Oil", "OPEC", "Energy", "Commodities"],
-            "category": "commodities",
-            "importance": "medium",
-            "market_impact": "positive"
-        },
-        {
-            "id": 5,
-            "title": "European Markets Rally on ECB Rate Cut Speculation",
-            "source": "Bloomberg",
-            "time": "6 hours ago",
-            "timestamp": (current_time - timedelta(hours=6)).isoformat(),
-            "summary": "European stocks surged as investors bet on potential ECB rate cuts following weaker-than-expected inflation data. DAX gained 2.1%, CAC 40 up 1.8%, FTSE 100 climbed 1.5%.",
-            "tags": ["Europe", "ECB", "Stocks", "Inflation"],
-            "category": "international",
-            "importance": "medium",
-            "market_impact": "positive"
-        },
-        {
-            "id": 6,
-            "title": "Gold Reaches Record High of $2,525 Amid Dollar Weakness",
-            "source": "MarketWatch",
-            "time": "7 hours ago",
-            "timestamp": (current_time - timedelta(hours=7)).isoformat(),
-            "summary": "Gold prices hit new highs as the US dollar weakened and geopolitical tensions increased. Silver also gained 2.3% to $28.90 per ounce as precious metals attract safe haven flows.",
-            "tags": ["Gold", "Safe Haven", "Dollar", "Precious Metals"],
-            "category": "commodities",
-            "importance": "medium",
-            "market_impact": "neutral"
-        },
-        {
-            "id": 7,
-            "title": "Tesla Cybertruck Production Ramp Drives Q4 Delivery Beat",
-            "source": "Tesla",
-            "time": "8 hours ago",
-            "timestamp": (current_time - timedelta(hours=8)).isoformat(),
-            "summary": "Tesla reported stronger-than-expected Q4 deliveries of 484,507 vehicles, with Cybertruck production contributing significantly. Stock jumped 5.3% in pre-market trading.",
-            "tags": ["Tesla", "EV", "Deliveries", "Cybertruck"],
-            "category": "earnings",
-            "importance": "medium",
-            "market_impact": "positive"
-        },
-        {
-            "id": 8,
-            "title": "Microsoft Azure Revenue Growth Accelerates to 30%",
-            "source": "Microsoft",
-            "time": "9 hours ago",
-            "timestamp": (current_time - timedelta(hours=9)).isoformat(),
-            "summary": "Microsoft's cloud division posted 30% year-over-year growth, beating analyst estimates of 27%. AI services and copilot features driving significant portion of new revenue streams.",
-            "tags": ["Microsoft", "Cloud", "Azure", "AI"],
-            "category": "earnings", 
-            "importance": "medium",
-            "market_impact": "positive"
-        },
-        {
-            "id": 9,
-            "title": "S&P 500 Reaches New All-Time High of 5,847 Points",
-            "source": "S&P Dow Jones",
-            "time": "10 hours ago",
-            "timestamp": (current_time - timedelta(hours=10)).isoformat(),
-            "summary": "The S&P 500 index closed at a record high, driven by strong tech earnings and optimistic economic outlook. All 11 sectors finished in positive territory for the session.",
-            "tags": ["S&P 500", "Stocks", "Record", "Markets"],
-            "category": "markets",
-            "importance": "high",
-            "market_impact": "positive"
-        }
-    ]
-    
-    return jsonify(news_items)
+    """API endpoint to get enhanced mock news data"""
+    try:
+        current_time = datetime.now()
+        
+        news_items = [
+            {
+                "id": 1,
+                "title": "Federal Reserve Maintains Interest Rates Amid Economic Uncertainty",
+                "source": "Federal Reserve",
+                "time": "2 hours ago",
+                "timestamp": (current_time - timedelta(hours=2)).isoformat(),
+                "summary": "The Federal Reserve decided to hold interest rates steady at 5.25%-5.50% as inflation shows signs of cooling but remains above target levels. Chair Powell emphasized data-dependent approach.",
+                "tags": ["Fed", "Interest Rates", "Economy", "Inflation"],
+                "category": "monetary_policy",
+                "importance": "high",
+                "market_impact": "positive"
+            },
+            {
+                "id": 2,
+                "title": "Bitcoin Surges Past $115,000 as Institutional Adoption Accelerates",
+                "source": "CoinDesk",
+                "time": "3 hours ago",
+                "timestamp": (current_time - timedelta(hours=3)).isoformat(),
+                "summary": "Bitcoin reached a new all-time high above $115,000 driven by increased corporate treasury adoption and regulatory clarity. MicroStrategy announced additional $500M purchase plan.",
+                "tags": ["Bitcoin", "Crypto", "ATH", "Institutional"],
+                "category": "cryptocurrency",
+                "importance": "high",
+                "market_impact": "positive"
+            },
+            {
+                "id": 3,
+                "title": "Apple Reports Record Q4 Earnings Despite China Headwinds",
+                "source": "Apple Inc.",
+                "time": "4 hours ago",
+                "timestamp": (current_time - timedelta(hours=4)).isoformat(),
+                "summary": "Apple exceeded analysts' expectations with $89.5B in quarterly revenue, driven by strong iPhone 15 sales and growing services business. Stock up 3.2% in after-hours trading.",
+                "tags": ["Apple", "Earnings", "Tech", "iPhone"],
+                "category": "earnings",
+                "importance": "medium",
+                "market_impact": "positive"
+            },
+            {
+                "id": 4,
+                "title": "Oil Prices Surge 4.2% After OPEC+ Production Cut Extension", 
+                "source": "Reuters",
+                "time": "5 hours ago",
+                "timestamp": (current_time - timedelta(hours=5)).isoformat(),
+                "summary": "Crude oil futures jumped following OPEC+'s decision to extend production cuts through Q2 2025. Brent crude now trading above $92 per barrel amid supply concerns.",
+                "tags": ["Oil", "OPEC", "Energy", "Commodities"],
+                "category": "commodities",
+                "importance": "medium",
+                "market_impact": "positive"
+            },
+            {
+                "id": 5,
+                "title": "European Markets Rally on ECB Rate Cut Speculation",
+                "source": "Bloomberg",
+                "time": "6 hours ago",
+                "timestamp": (current_time - timedelta(hours=6)).isoformat(),
+                "summary": "European stocks surged as investors bet on potential ECB rate cuts following weaker-than-expected inflation data. DAX gained 2.1%, CAC 40 up 1.8%, FTSE 100 climbed 1.5%.",
+                "tags": ["Europe", "ECB", "Stocks", "Inflation"],
+                "category": "international",
+                "importance": "medium",
+                "market_impact": "positive"
+            }
+        ]
+        
+        return jsonify(news_items)
+    except Exception as e:
+        print(f"❌ Error in /api/news: {e}")
+        return jsonify({'error': 'Failed to fetch news data'}), 500
 
 @app.route('/api/market-stats')
 def get_market_stats():
-    """Get current market statistics"""
-    if not market_data_cache:
-        fetch_real_data()
-    
-    stats = calculate_market_stats()
-    
-    # Add additional market metrics
-    stats.update({
-        'total_volume': random.randint(80000000000, 120000000000),  # Mock total volume
-        'market_cap': random.randint(45000000000000, 55000000000000),  # Mock total market cap
-        'fear_greed_index': random.randint(25, 85),  # Mock fear & greed index
-        'vix': round(random.uniform(12.5, 35.8), 2),  # Mock VIX
-        'sentiment': "Cautiously Optimistic" if stats['gainers'] > stats['losers'] else "Mixed"
-    })
-    
-    return jsonify(stats)
+    """API endpoint to get current market statistics"""
+    try:
+        if not market_data_cache:
+            fetch_real_data()
+        
+        stats = calculate_market_stats()
+        
+        # Add additional market metrics
+        stats.update({
+            'total_volume': random.randint(80000000000, 120000000000),  # Mock total volume
+            'market_cap': random.randint(45000000000000, 55000000000000),  # Mock total market cap
+            'fear_greed_index': random.randint(25, 85),  # Mock fear & greed index
+            'vix': round(random.uniform(12.5, 35.8), 2),  # Mock VIX
+            'sentiment': "Cautiously Optimistic" if stats['gainers'] > stats['losers'] else "Mixed"
+        })
+        
+        return jsonify(stats)
+    except Exception as e:
+        print(f"❌ Error in /api/market-stats: {e}")
+        return jsonify({'error': 'Failed to fetch market stats'}), 500
 
 @app.route('/api/watchlist')
 def get_watchlist():
-    """Get user's watchlist (mock data)"""
-    watchlist = [
-        {'symbol': 'AAPL', 'price': 182.45, 'change': 0.89},
-        {'symbol': 'BTC/USDT', 'price': 114250, 'change': 2.34},
-        {'symbol': 'EUR/USD', 'price': 1.0845, 'change': 0.23},
-        {'symbol': 'Gold', 'price': 2518.45, 'change': 0.45}
-    ]
-    return jsonify(watchlist)
+    """API endpoint to get user's watchlist (mock data)"""
+    try:
+        watchlist = [
+            {'symbol': 'AAPL', 'price': 182.45, 'change': 0.89},
+            {'symbol': 'BTC/USDT', 'price': 114250, 'change': 2.34},
+            {'symbol': 'EUR/USD', 'price': 1.0845, 'change': 0.23},
+            {'symbol': 'Gold', 'price': 2518.45, 'change': 0.45}
+        ]
+        return jsonify(watchlist)
+    except Exception as e:
+        print(f"❌ Error in /api/watchlist: {e}")
+        return jsonify({'error': 'Failed to fetch watchlist'}), 500
 
 def background_data_updater():
     """Background thread to periodically update market data"""
     while True:
         try:
-            print("🔄 Updating market data in background...")
+            print("🔄 Background data update...")
             fetch_real_data()
             time.sleep(60)  # Update every minute
         except Exception as e:
@@ -389,11 +363,18 @@ def background_data_updater():
 # Error handlers
 @app.errorhandler(404)
 def not_found_error(error):
-    return jsonify({'error': 'Not found'}), 404
+    print(f"❌ 404 Error: {error}")
+    return jsonify({'error': 'Endpoint not found', 'message': str(error)}), 404
 
 @app.errorhandler(500)
 def internal_error(error):
-    return jsonify({'error': 'Internal server error'}), 500
+    print(f"❌ 500 Error: {error}")
+    return jsonify({'error': 'Internal server error', 'message': str(error)}), 500
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    print(f"❌ Unhandled exception: {e}")
+    return jsonify({'error': 'An unexpected error occurred', 'message': str(e)}), 500
 
 if __name__ == '__main__':
     # Initialize data on startup
@@ -412,6 +393,7 @@ if __name__ == '__main__':
         print("🌐 Server starting on http://localhost:5000")
         print("📈 Dashboard Status: Active")
         print("💡 Features: Live data, Interactive charts, Breaking news")
+        print("🗂️  Database: None (In-memory only)")
         print("-" * 50)
         
     except Exception as e:

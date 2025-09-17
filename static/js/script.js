@@ -1,18 +1,20 @@
-console.log('Financial Dashboard Script loaded!');
+console.log('🚀 Financial Dashboard Script loaded!');
 
 // Global variables
 let refreshInterval;
 let newsUpdateInterval;
+let apiBaseUrl = window.location.origin; // Dynamically get the base URL
 
 // DOM Content Loaded Event
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing Financial Dashboard...');
+    console.log('🎯 DOM loaded, initializing Financial Dashboard...');
+    console.log('🌐 API Base URL:', apiBaseUrl);
     
     // Test element availability
     const refreshBtn = document.getElementById('refresh-btn');
     const newsContainer = document.getElementById('news-items');
     
-    console.log('Elements found:', {
+    console.log('🔍 Elements found:', {
         refreshBtn: !!refreshBtn,
         newsContainer: !!newsContainer
     });
@@ -28,28 +30,31 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function initializeDashboard() {
-    console.log('Initializing dashboard with mock data...');
+    console.log('🏗️ Initializing dashboard...');
     
-    // Update overview immediately
+    // Update overview immediately with fallback data
     updateOverview();
     
-    // Initialize all market data
-    initializeMarketData();
+    // Try to fetch real data from API, fall back to mock data
+    fetchDataFromAPI();
     
-    // Initialize charts
-    setTimeout(initializeCharts, 500);
+    // Initialize charts after a short delay
+    setTimeout(initializeCharts, 800);
     
     // Populate news
-    setTimeout(populateNews, 1000);
+    setTimeout(() => {
+        fetchNewsFromAPI();
+    }, 1200);
     
     // Hide loading overlays
-    setTimeout(hideAllLoadingOverlays, 1500);
+    setTimeout(hideAllLoadingOverlays, 2000);
     
     // Update timestamp
     updateLastUpdated();
 }
 
 function updateOverview() {
+    console.log('📊 Updating overview section...');
     updateElement('total-gainers', '12');
     updateElement('total-losers', '8');
     updateElement('market-trend', 'Bullish');
@@ -61,8 +66,8 @@ function updateOverview() {
     }
 }
 
-function initializeMarketData() {
-    console.log('Initializing market data...');
+function initializeMockData() {
+    console.log('🎭 Initializing with mock data...');
     
     // Forex data
     const forexData = {
@@ -112,7 +117,7 @@ function initializeMarketData() {
 function updateMarketPrices(market, data) {
     const container = document.getElementById(market + 'Prices');
     if (!container) {
-        console.warn('Container not found:', market + 'Prices');
+        console.warn(`⚠️ Container not found: ${market}Prices`);
         return;
     }
     
@@ -122,25 +127,33 @@ function updateMarketPrices(market, data) {
     const entries = Object.entries(data).slice(0, 4);
     
     entries.forEach(([symbol, item]) => {
+        // Handle both API format and mock format
+        const current = item.current || item.price || 0;
+        const change = item.change || 0;
+        
         const priceDiv = document.createElement('div');
-        priceDiv.className = `price-item ${item.change >= 0 ? 'positive' : 'negative'}`;
+        priceDiv.className = `price-item ${change >= 0 ? 'positive' : 'negative'}`;
         priceDiv.innerHTML = `
             <div class="price-header">
                 <span class="price-symbol">${symbol}</span>
-                <span class="price-value">${formatPrice(item.current, symbol)}</span>
+                <span class="price-value">${formatPrice(current, symbol)}</span>
             </div>
-            <div class="price-change ${item.change >= 0 ? 'positive' : 'negative'}">
-                <i class="fas fa-arrow-${item.change >= 0 ? 'up' : 'down'}"></i>
-                ${item.change >= 0 ? '+' : ''}${item.change}%
+            <div class="price-change ${change >= 0 ? 'positive' : 'negative'}">
+                <i class="fas fa-arrow-${change >= 0 ? 'up' : 'down'}"></i>
+                ${change >= 0 ? '+' : ''}${change.toFixed(2)}%
             </div>
         `;
         container.appendChild(priceDiv);
     });
     
-    console.log(`Updated ${market} prices with ${entries.length} items`);
+    console.log(`✅ Updated ${market} prices with ${entries.length} items`);
 }
 
 function formatPrice(price, symbol) {
+    if (typeof price !== 'number') {
+        price = parseFloat(price) || 0;
+    }
+    
     if (symbol.includes('/USD') || symbol.includes('/USDT')) {
         if (price < 1) {
             return '$' + price.toFixed(4);
@@ -166,10 +179,10 @@ function formatPrice(price, symbol) {
 }
 
 function initializeCharts() {
-    console.log('Initializing charts...');
+    console.log('📈 Initializing charts...');
     
     if (typeof Chart === 'undefined') {
-        console.error('Chart.js not loaded');
+        console.error('❌ Chart.js not loaded');
         showToast('Chart.js library not available', 'error');
         return;
     }
@@ -181,7 +194,7 @@ function initializeCharts() {
         if (canvas) {
             createChart(canvas, market);
         } else {
-            console.warn(`Canvas not found for ${market}`);
+            console.warn(`⚠️ Canvas not found for ${market}`);
         }
     });
 }
@@ -255,7 +268,7 @@ function createChart(canvas, market) {
         }
     });
     
-    console.log(`Created chart for ${market}`);
+    console.log(`✅ Created chart for ${market}`);
 }
 
 function generateChartData(market) {
@@ -324,16 +337,17 @@ function getMarketColor(market) {
     return colors[market] || '#00d4ff';
 }
 
-function populateNews() {
-    console.log('Populating news section...');
+function populateNews(newsItems = null) {
+    console.log('📰 Populating news section...');
     
     const newsContainer = document.getElementById('news-items');
     if (!newsContainer) {
-        console.warn('News container not found');
+        console.warn('⚠️ News container not found');
         return;
     }
     
-    const newsItems = [
+    // Use provided news items or default mock data
+    const items = newsItems || [
         {
             title: "Federal Reserve Maintains Interest Rates at 5.25%-5.50%",
             source: "Federal Reserve",
@@ -381,36 +395,12 @@ function populateNews() {
             summary: "Gold prices reached a new record high as the US dollar weakened and geopolitical tensions increased. Silver also gained 2.3% to $28.90 per ounce.",
             tags: ["Gold", "Precious Metals", "Dollar", "Safe Haven"],
             breaking: false
-        },
-        {
-            title: "Tesla Cybertruck Production Ramp Boosts Q4 Deliveries",
-            source: "Tesla",
-            time: "8 hours ago",
-            summary: "Tesla reported stronger-than-expected Q4 deliveries of 484,507 vehicles, with Cybertruck production contributing significantly. Stock jumped 5% pre-market.",
-            tags: ["Tesla", "EV", "Deliveries", "Cybertruck"],
-            breaking: false
-        },
-        {
-            title: "Microsoft Azure Revenue Growth Accelerates to 30%",
-            source: "Microsoft",
-            time: "9 hours ago",
-            summary: "Microsoft's cloud division posted 30% year-over-year growth, beating analyst estimates. AI services driving significant portion of new revenue streams.",
-            tags: ["Microsoft", "Cloud", "Azure", "AI"],
-            breaking: false
-        },
-        {
-            title: "S&P 500 Reaches New All-Time High of 5,847 Points",
-            source: "S&P Dow Jones",
-            time: "10 hours ago",
-            summary: "The S&P 500 index closed at a record high, driven by strong tech earnings and optimistic economic outlook. All 11 sectors finished in positive territory.",
-            tags: ["S&P 500", "Stocks", "Record", "Markets"],
-            breaking: false
         }
     ];
     
     newsContainer.innerHTML = '';
     
-    newsItems.forEach((news, index) => {
+    items.forEach((news, index) => {
         const newsDiv = document.createElement('article');
         newsDiv.className = `news-item ${news.breaking ? 'breaking' : ''}`;
         newsDiv.style.animationDelay = `${index * 0.1}s`;
@@ -428,11 +418,11 @@ function populateNews() {
         newsContainer.appendChild(newsDiv);
     });
     
-    console.log(`Added ${newsItems.length} news items`);
+    console.log(`✅ Added ${items.length} news items`);
 }
 
 function setupEventListeners() {
-    console.log('Setting up event listeners...');
+    console.log('🎮 Setting up event listeners...');
     
     // Refresh button
     const refreshBtn = document.getElementById('refresh-btn');
@@ -469,7 +459,7 @@ function setupEventListeners() {
 }
 
 function handleRefresh() {
-    console.log('Manual refresh triggered');
+    console.log('🔄 Manual refresh triggered');
     const refreshBtn = document.getElementById('refresh-btn');
     
     if (refreshBtn) {
@@ -477,21 +467,17 @@ function handleRefresh() {
         refreshBtn.disabled = true;
     }
     
-    // Simulate data fetching
-    setTimeout(() => {
-        fetchDataFromAPI();
-        
+    // Fetch fresh data from API
+    fetchDataFromAPI().finally(() => {
         if (refreshBtn) {
             refreshBtn.classList.remove('loading');
             refreshBtn.disabled = false;
         }
-        
-        showToast('Data refreshed successfully', 'success');
-    }, 2000);
+    });
 }
 
 function handleNewsRefresh() {
-    console.log('News refresh triggered');
+    console.log('📰 News refresh triggered');
     
     // Add loading state to news items
     const newsItems = document.querySelectorAll('.news-item');
@@ -501,14 +487,13 @@ function handleNewsRefresh() {
     
     // Refresh news after delay
     setTimeout(() => {
-        populateNews();
-        showToast('News updated', 'success');
+        fetchNewsFromAPI();
     }, 1000);
 }
 
 function handleFullscreenChart(event) {
     const market = event.currentTarget.dataset.market;
-    console.log(`Opening fullscreen chart for ${market}`);
+    console.log(`📊 Opening fullscreen chart for ${market}`);
     
     const modal = document.getElementById('chart-modal');
     const modalTitle = document.getElementById('modal-title');
@@ -599,10 +584,11 @@ function closeModal() {
 }
 
 function startPeriodicUpdates() {
-    console.log('Starting periodic updates...');
+    console.log('⏰ Starting periodic updates...');
     
     // Update data every 30 seconds
     refreshInterval = setInterval(() => {
+        console.log('🔄 Periodic data update...');
         updateLastUpdated();
         // Simulate small price changes
         simulatePriceUpdates();
@@ -610,6 +596,7 @@ function startPeriodicUpdates() {
     
     // Update news every 5 minutes
     newsUpdateInterval = setInterval(() => {
+        console.log('📰 Periodic news check...');
         // Add a "new" news item occasionally
         if (Math.random() > 0.7) {
             addBreakingNews();
@@ -618,10 +605,12 @@ function startPeriodicUpdates() {
 }
 
 function simulatePriceUpdates() {
-    console.log('Simulating price updates...');
+    console.log('🎲 Simulating price updates...');
     
     // Update random prices slightly
     const priceItems = document.querySelectorAll('.price-item');
+    let updatedCount = 0;
+    
     priceItems.forEach(item => {
         if (Math.random() > 0.8) { // 20% chance to update each item
             const changeSpan = item.querySelector('.price-change');
@@ -637,9 +626,14 @@ function simulatePriceUpdates() {
                 
                 // Update border color
                 item.className = `price-item ${newChange >= 0 ? 'positive' : 'negative'}`;
+                updatedCount++;
             }
         }
     });
+    
+    if (updatedCount > 0) {
+        console.log(`📊 Updated ${updatedCount} price items`);
+    }
 }
 
 function addBreakingNews() {
@@ -683,39 +677,99 @@ function addBreakingNews() {
         
         newsContainer.insertBefore(newsDiv, newsContainer.firstChild);
         showToast('Breaking news added!', 'warning');
+        console.log('📰 Added breaking news item');
     }
 }
 
 async function fetchDataFromAPI() {
-    console.log('Attempting to fetch data from API...');
+    console.log('🌐 Attempting to fetch data from API...');
     
     try {
-        const response = await fetch('/api/prices');
+        const url = `${apiBaseUrl}/api/prices`;
+        console.log('📡 Fetching from:', url);
+        
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+        });
+        
+        console.log('📡 Response status:', response.status, response.statusText);
+        
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const data = await response.json();
-        console.log('API data received:', data);
+        console.log('✅ API data received:', {
+            keys: Object.keys(data),
+            lastUpdated: data.last_updated
+        });
         
         // Update with real data
-        updateLastUpdated(data.last_updated);
+        if (data.last_updated) {
+            updateLastUpdated(data.last_updated);
+        }
         
         // Update markets with real data
+        let updatedMarkets = 0;
         Object.keys(data).forEach(market => {
-            if (market !== 'last_updated') {
+            if (market !== 'last_updated' && market !== 'market_stats' && data[market]) {
                 updateMarketPrices(market, data[market]);
+                updatedMarkets++;
             }
         });
         
         showToast('Live data updated successfully', 'success');
+        console.log(`✅ Updated ${updatedMarkets} markets with live data`);
         
     } catch (error) {
-        console.error('API fetch failed:', error);
-        showToast('Using simulated data - API unavailable', 'warning');
+        console.error('❌ API fetch failed:', error);
+        console.log('🎭 Falling back to mock data...');
+        
+        showToast('Using simulated data - API connection issue', 'warning');
         
         // Continue with simulated updates
-        initializeMarketData();
+        initializeMockData();
+    }
+}
+
+async function fetchNewsFromAPI() {
+    console.log('📰 Fetching news from API...');
+    
+    try {
+        const url = `${apiBaseUrl}/api/news`;
+        console.log('📡 News URL:', url);
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const newsData = await response.json();
+        console.log('✅ News data received:', newsData.length, 'items');
+        
+        // Convert API format to display format
+        const formattedNews = newsData.map(item => ({
+            title: item.title,
+            source: item.source,
+            time: item.time,
+            summary: item.summary,
+            tags: item.tags || [],
+            breaking: item.importance === 'high' || item.category === 'breaking'
+        }));
+        
+        populateNews(formattedNews);
+        showToast('News updated successfully', 'success');
+        
+    } catch (error) {
+        console.error('❌ News API fetch failed:', error);
+        
+        // Fall back to mock news
+        populateNews();
+        showToast('Using mock news data', 'warning');
     }
 }
 
@@ -725,28 +779,35 @@ function updateElement(id, value) {
         element.textContent = value;
         return true;
     } else {
-        console.warn('Element not found:', id);
+        console.warn(`⚠️ Element not found: ${id}`);
         return false;
     }
 }
 
 function updateLastUpdated(timestamp) {
     const now = timestamp || new Date().toLocaleString();
-    updateElement('last-updated', now);
+    const success = updateElement('last-updated', now);
+    if (success) {
+        console.log('🕐 Updated timestamp:', now);
+    }
 }
 
 function hideAllLoadingOverlays() {
-    document.querySelectorAll('.chart-overlay').forEach(overlay => {
+    const overlays = document.querySelectorAll('.chart-overlay');
+    overlays.forEach(overlay => {
         overlay.classList.add('hidden');
     });
-    console.log('All loading overlays hidden');
+    console.log(`✅ Hidden ${overlays.length} loading overlays`);
 }
 
 function showToast(message, type = 'info') {
-    console.log(`Toast: ${message} (${type})`);
+    console.log(`🍞 Toast: ${message} (${type})`);
     
     const container = document.getElementById('toast-container');
-    if (!container) return;
+    if (!container) {
+        console.warn('⚠️ Toast container not found');
+        return;
+    }
 
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -781,11 +842,73 @@ function showToast(message, type = 'info') {
     }, 5000);
 }
 
+// API Health Check Function
+async function checkAPIHealth() {
+    try {
+        console.log('🏥 Checking API health...');
+        const response = await fetch(`${apiBaseUrl}/api/market-stats`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (response.ok) {
+            console.log('✅ API is healthy');
+            return true;
+        } else {
+            console.log('⚠️ API responded with non-200 status:', response.status);
+            return false;
+        }
+    } catch (error) {
+        console.log('❌ API health check failed:', error.message);
+        return false;
+    }
+}
+
+// Test all API endpoints
+async function testAllEndpoints() {
+    console.log('🧪 Testing all API endpoints...');
+    
+    const endpoints = [
+        '/api/prices',
+        '/api/news',
+        '/api/market-stats',
+        '/api/watchlist'
+    ];
+    
+    for (const endpoint of endpoints) {
+        try {
+            const response = await fetch(`${apiBaseUrl}${endpoint}`);
+            console.log(`${endpoint}: ${response.ok ? '✅' : '❌'} ${response.status}`);
+        } catch (error) {
+            console.log(`${endpoint}: ❌ ${error.message}`);
+        }
+    }
+}
+
 // Cleanup function
 function cleanup() {
-    if (refreshInterval) clearInterval(refreshInterval);
-    if (newsUpdateInterval) clearInterval(newsUpdateInterval);
+    console.log('🧹 Cleaning up intervals...');
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+        console.log('🧹 Cleared refresh interval');
+    }
+    if (newsUpdateInterval) {
+        clearInterval(newsUpdateInterval);
+        console.log('🧹 Cleared news interval');
+    }
 }
 
 // Handle page unload
 window.addEventListener('beforeunload', cleanup);
+
+// Debug helper - expose functions to window for console testing
+if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    window.debugDashboard = {
+        testAPI: testAllEndpoints,
+        checkHealth: checkAPIHealth,
+        refreshData: fetchDataFromAPI,
+        refreshNews: fetchNewsFromAPI,
+        showToast: showToast
+    };
+    console.log('🛠️ Debug functions available: window.debugDashboard');
+}
