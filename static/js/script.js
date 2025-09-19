@@ -3,6 +3,7 @@ console.log('🚀 Financial Dashboard Script loaded!');
 // Global variables
 let refreshInterval;
 let newsUpdateInterval;
+let clockInterval; // New clock interval
 let apiBaseUrl = window.location.origin; // Dynamically get the base URL
 
 // DOM Content Loaded Event
@@ -27,6 +28,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Start periodic updates
     startPeriodicUpdates();
+    
+    // Start real-time clock
+    startRealtimeClock();
 });
 
 function initializeDashboard() {
@@ -49,8 +53,40 @@ function initializeDashboard() {
     // Hide loading overlays
     setTimeout(hideAllLoadingOverlays, 2000);
     
-    // Update timestamp
+    // Update timestamp immediately
     updateLastUpdated();
+}
+
+// NEW: Real-time clock function
+function startRealtimeClock() {
+    console.log('⏰ Starting real-time clock...');
+    
+    // Update clock immediately
+    updateClockTime();
+    
+    // Update every second
+    clockInterval = setInterval(() => {
+        updateClockTime();
+    }, 1000);
+}
+
+// NEW: Update clock time function
+function updateClockTime() {
+    const now = new Date();
+    const timeString = now.toLocaleString('en-US', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+    
+    const clockElement = document.getElementById('last-updated');
+    if (clockElement) {
+        clockElement.textContent = timeString;
+    }
 }
 
 function updateOverview() {
@@ -586,11 +622,10 @@ function closeModal() {
 function startPeriodicUpdates() {
     console.log('⏰ Starting periodic updates...');
     
-    // Update data every 30 seconds
+    // Update data every 30 seconds (but not the clock - that's separate now)
     refreshInterval = setInterval(() => {
         console.log('🔄 Periodic data update...');
-        updateLastUpdated();
-        // Simulate small price changes
+        // Don't update clock here anymore - it has its own interval
         simulatePriceUpdates();
     }, 30000);
     
@@ -707,11 +742,6 @@ async function fetchDataFromAPI() {
             lastUpdated: data.last_updated
         });
         
-        // Update with real data
-        if (data.last_updated) {
-            updateLastUpdated(data.last_updated);
-        }
-        
         // Update markets with real data
         let updatedMarkets = 0;
         Object.keys(data).forEach(market => {
@@ -785,10 +815,10 @@ function updateElement(id, value) {
 }
 
 function updateLastUpdated(timestamp) {
-    const now = timestamp || new Date().toLocaleString();
-    const success = updateElement('last-updated', now);
-    if (success) {
-        console.log('🕐 Updated timestamp:', now);
+    // Don't update timestamp manually anymore - the clock handles this
+    // This function is kept for API compatibility but doesn't override clock
+    if (timestamp) {
+        console.log('📡 Data last updated from API:', timestamp);
     }
 }
 
@@ -800,13 +830,17 @@ function hideAllLoadingOverlays() {
     console.log(`✅ Hidden ${overlays.length} loading overlays`);
 }
 
-function showToast(message, type = 'info') {
+// IMPROVED: Better toast system with less intrusive design
+function showToast(message, type = 'info', duration = 4000) {
     console.log(`🍞 Toast: ${message} (${type})`);
     
-    const container = document.getElementById('toast-container');
+    let container = document.getElementById('toast-container');
     if (!container) {
-        console.warn('⚠️ Toast container not found');
-        return;
+        // Create container if it doesn't exist
+        container = document.createElement('div');
+        container.id = 'toast-container';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
     }
 
     const toast = document.createElement('div');
@@ -823,6 +857,9 @@ function showToast(message, type = 'info') {
         <div class="toast-content">
             <i class="toast-icon ${icons[type] || icons.info}"></i>
             <span class="toast-message">${message}</span>
+            <button class="toast-close" onclick="this.parentElement.parentElement.remove()">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
     `;
 
@@ -831,15 +868,17 @@ function showToast(message, type = 'info') {
     // Trigger animation
     setTimeout(() => toast.classList.add('show'), 100);
 
-    // Auto remove
+    // Auto remove after duration
     setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => {
-            if (container.contains(toast)) {
-                container.removeChild(toast);
-            }
-        }, 300);
-    }, 5000);
+        if (container.contains(toast)) {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (container.contains(toast)) {
+                    container.removeChild(toast);
+                }
+            }, 300);
+        }
+    }, duration);
 }
 
 // API Health Check Function
@@ -885,7 +924,7 @@ async function testAllEndpoints() {
     }
 }
 
-// Cleanup function
+// IMPROVED: Cleanup function now includes clock cleanup
 function cleanup() {
     console.log('🧹 Cleaning up intervals...');
     if (refreshInterval) {
@@ -895,6 +934,10 @@ function cleanup() {
     if (newsUpdateInterval) {
         clearInterval(newsUpdateInterval);
         console.log('🧹 Cleared news interval');
+    }
+    if (clockInterval) {
+        clearInterval(clockInterval);
+        console.log('🧹 Cleared clock interval');
     }
 }
 
@@ -908,7 +951,8 @@ if (window.location.hostname === 'localhost' || window.location.hostname === '12
         checkHealth: checkAPIHealth,
         refreshData: fetchDataFromAPI,
         refreshNews: fetchNewsFromAPI,
-        showToast: showToast
+        showToast: showToast,
+        updateClock: updateClockTime
     };
     console.log('🛠️ Debug functions available: window.debugDashboard');
 }
