@@ -91,8 +91,8 @@ function updateClockTime() {
 
 function updateOverview() {
     console.log('📊 Updating overview section...');
-    updateElement('total-gainers', '12');
-    updateElement('total-losers', '8');
+    updateElement('total-gainers', '14');
+    updateElement('total-losers', '10');
     updateElement('market-trend', 'Bullish');
     
     // Update summary value classes
@@ -105,7 +105,7 @@ function updateOverview() {
 function initializeMockData() {
     console.log('🎭 Initializing with mock data...');
     
-    // Forex data
+    // Forex data - exactly 6 pairs
     const forexData = {
         'EUR/USD': { current: 1.0845, change: 0.23 },
         'GBP/USD': { current: 1.2534, change: -0.45 },
@@ -115,7 +115,7 @@ function initializeMockData() {
         'USD/CHF': { current: 0.9012, change: -0.18 }
     };
     
-    // Crypto data
+    // Crypto data - exactly 6 pairs
     const cryptoData = {
         'BTC/USDT': { current: 114250, change: 2.34 },
         'ETH/USDT': { current: 3485, change: 1.87 },
@@ -125,22 +125,24 @@ function initializeMockData() {
         'ADA/USDT': { current: 0.45, change: 2.11 }
     };
     
-    // Stocks data
+    // Stocks data - exactly 6 pairs
     const stocksData = {
         'AAPL': { current: 182.45, change: 0.89 },
         'MSFT': { current: 398.23, change: -0.34 },
         'GOOGL': { current: 142.67, change: 1.23 },
-        'TSLA': { current: 201.89, change: -2.11 },
         'AMZN': { current: 145.67, change: 1.45 },
+        'TSLA': { current: 201.89, change: -2.11 },
         'META': { current: 512.34, change: 0.67 }
     };
     
-    // Commodities data
+    // Commodities data - exactly 6 pairs with real names and NO display_name conflicts
     const commoditiesData = {
         'Gold': { current: 2518.45, change: 0.45 },
         'Silver': { current: 28.67, change: -0.23 },
-        'Oil': { current: 89.34, change: 1.12 },
-        'Copper': { current: 4.65, change: -0.67 }
+        'WTI Oil': { current: 89.34, change: 1.12 },
+        'Brent Oil': { current: 91.23, change: 0.87 },
+        'Platinum': { current: 945.67, change: -0.67 },
+        'Palladium': { current: 1234.56, change: 1.34 }
     };
     
     // Update all markets
@@ -159,20 +161,32 @@ function updateMarketPrices(market, data) {
     
     container.innerHTML = '';
     
-    // Show only first 4 items to fit the grid properly
-    const entries = Object.entries(data).slice(0, 4);
+    // Show exactly 6 items only
+    const entries = Object.entries(data).slice(0, 6);
     
     entries.forEach(([symbol, item]) => {
         // Handle both API format and mock format
         const current = item.current || item.price || 0;
         const change = item.change || 0;
         
+        // Clean symbol name - remove any undefined text
+        let cleanSymbol = symbol;
+        if (cleanSymbol.includes('undef')) {
+            cleanSymbol = cleanSymbol.replace(/undef/g, '').trim();
+        }
+        if (cleanSymbol.includes('undefined')) {
+            cleanSymbol = cleanSymbol.replace(/undefined/g, '').trim();
+        }
+        
+        // Use display name if available, otherwise use clean symbol
+        const displayName = item.display_name || cleanSymbol;
+        
         const priceDiv = document.createElement('div');
         priceDiv.className = `price-item ${change >= 0 ? 'positive' : 'negative'}`;
         priceDiv.innerHTML = `
             <div class="price-header">
-                <span class="price-symbol">${symbol}</span>
-                <span class="price-value">${formatPrice(current, symbol)}</span>
+                <span class="price-symbol">${displayName}</span>
+                <span class="price-value">${formatPrice(current, cleanSymbol)}</span>
             </div>
             <div class="price-change ${change >= 0 ? 'positive' : 'negative'}">
                 <i class="fas fa-arrow-${change >= 0 ? 'up' : 'down'}"></i>
@@ -182,7 +196,7 @@ function updateMarketPrices(market, data) {
         container.appendChild(priceDiv);
     });
     
-    console.log(`✅ Updated ${market} prices with ${entries.length} items`);
+    console.log(`✅ Updated ${market} prices with exactly ${entries.length} items`);
 }
 
 function formatPrice(price, symbol) {
@@ -190,24 +204,23 @@ function formatPrice(price, symbol) {
         price = parseFloat(price) || 0;
     }
     
-    if (symbol.includes('/USD') || symbol.includes('/USDT')) {
+    if (symbol.includes('/USD') || symbol.includes('/USDT') || symbol.startsWith('XAU') || symbol.startsWith('XAG') || symbol.startsWith('XPT') || symbol.startsWith('XPD') || symbol.includes('OIL')) {
         if (price < 1) {
-            return '$' + price.toFixed(4);
+            return 
+     + price.toFixed(4);
         } else if (price > 1000) {
-            return '$' + price.toLocaleString(undefined, {
+            return 
+     + price.toLocaleString(undefined, {
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 0
             });
         } else {
-            return '$' + price.toFixed(2);
+            return 
+     + price.toFixed(2);
         }
-    } else if (symbol === 'Gold' || symbol === 'Silver' || symbol === 'Oil' || symbol === 'Copper') {
-        return '$' + price.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        });
     } else {
-        return '$' + price.toLocaleString(undefined, {
+        return 
+     + price.toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2
         });
@@ -382,59 +395,84 @@ function populateNews(newsItems = null) {
         return;
     }
     
-    // Use provided news items or default mock data
+    // Clear existing news first
+    newsContainer.innerHTML = '';
+    
+    // Use provided news items or generate fresh mock data with exactly 9 unique items
     const items = newsItems || [
         {
-            title: "Federal Reserve Maintains Interest Rates at 5.25%-5.50%",
+            title: "Federal Reserve Maintains Interest Rates Amid Economic Uncertainty",
             source: "Federal Reserve",
-            time: "2 hours ago",
-            summary: "The Federal Reserve decided to hold interest rates steady as inflation shows signs of cooling but remains above the 2% target. Markets responded positively to the dovish tone in the statement.",
+            time: "1 hour ago",
+            summary: "The Federal Reserve decided to hold interest rates steady as inflation shows signs of cooling but remains above the 2% target. Chair Powell emphasized data-dependent approach moving forward.",
             tags: ["Fed", "Interest Rates", "Monetary Policy"],
             breaking: false
         },
         {
-            title: "Bitcoin Breaks $115,000 Barrier Amid Institutional Adoption",
+            title: "Bitcoin Surges Past $115,000 as Institutional Adoption Accelerates",
             source: "CoinDesk",
-            time: "3 hours ago",
-            summary: "Bitcoin reached a new all-time high above $115,000 driven by increased institutional adoption and regulatory clarity. MicroStrategy announced another $500M purchase.",
-            tags: ["Bitcoin", "Crypto", "ATH", "Institutions"],
+            time: "2 hours ago",
+            summary: "Bitcoin reached a new all-time high above $115,000 driven by increased corporate treasury adoption and regulatory clarity. MicroStrategy announced additional $500M purchase plan for Q1 2025.",
+            tags: ["Bitcoin", "Crypto", "ATH", "Institutional"],
             breaking: true
         },
         {
-            title: "Apple Reports Record Q4 Revenue Despite China Headwinds",
+            title: "Apple Reports Record Q4 Earnings Despite China Headwinds",
             source: "Apple Inc.",
-            time: "4 hours ago",
-            summary: "Apple exceeded analysts' expectations with $89.5B in quarterly revenue, driven by strong iPhone 15 sales and growing services business. Stock up 3% in after-hours trading.",
+            time: "3 hours ago",
+            summary: "Apple exceeded analysts' expectations with $89.5B in quarterly revenue, driven by strong iPhone 15 sales and growing services business. Stock up 3.2% in after-hours trading.",
             tags: ["Apple", "Earnings", "Tech", "iPhone"],
             breaking: false
         },
         {
-            title: "Oil Prices Surge 4% After OPEC+ Production Cut Extension",
+            title: "Oil Prices Surge 4.2% After OPEC+ Production Cut Extension",
             source: "Reuters",
-            time: "5 hours ago",
-            summary: "Crude oil futures jumped following OPEC+'s decision to extend production cuts through Q2 2025. Brent crude now trading above $92 per barrel.",
+            time: "4 hours ago",
+            summary: "Crude oil futures jumped following OPEC+'s decision to extend production cuts through Q2 2025. Brent crude now trading above $92 per barrel amid supply concerns.",
             tags: ["Oil", "OPEC", "Energy", "Commodities"],
             breaking: false
         },
         {
             title: "European Markets Rally on ECB Rate Cut Speculation",
             source: "Bloomberg",
-            time: "6 hours ago",
-            summary: "European stocks surged as investors bet on potential ECB rate cuts following weaker inflation data. DAX gained 2.1%, CAC 40 up 1.8%.",
+            time: "5 hours ago",
+            summary: "European stocks surged as investors bet on potential ECB rate cuts following weaker inflation data. DAX gained 2.1%, CAC 40 up 1.8%, FTSE 100 climbed 1.5%.",
             tags: ["Europe", "ECB", "Stocks", "Inflation"],
             breaking: false
         },
         {
-            title: "Gold Hits $2,525 Record High Amid Dollar Weakness",
+            title: "Gold Hits New Record High Above $2,525 Amid Dollar Weakness",
             source: "MarketWatch",
-            time: "7 hours ago",
-            summary: "Gold prices reached a new record high as the US dollar weakened and geopolitical tensions increased. Silver also gained 2.3% to $28.90 per ounce.",
+            time: "6 hours ago",
+            summary: "Gold prices reached a new record high as the US dollar weakened and geopolitical tensions increased. Silver also gained 2.3% while platinum jumped 1.8%.",
             tags: ["Gold", "Precious Metals", "Dollar", "Safe Haven"],
+            breaking: false
+        },
+        {
+            title: "Microsoft Azure Revenue Grows 35% Amid AI Revolution",
+            source: "Microsoft Corp.",
+            time: "7 hours ago",
+            summary: "Microsoft reported strong cloud growth with Azure revenue up 35% year-over-year, driven by AI services adoption. Copilot AI tools seeing rapid enterprise uptake.",
+            tags: ["Microsoft", "Cloud", "AI", "Enterprise"],
+            breaking: false
+        },
+        {
+            title: "Japanese Yen Weakens as Bank of Japan Holds Ultra-Low Rates",
+            source: "Nikkei Asia",
+            time: "8 hours ago",
+            summary: "The yen fell to fresh lows against the dollar after the Bank of Japan maintained ultra-accommodative policy. USD/JPY reached 150.25, prompting intervention warnings.",
+            tags: ["Yen", "BOJ", "Forex", "Intervention"],
+            breaking: false
+        },
+        {
+            title: "Ethereum ETF Records $2.3B Weekly Inflows as Adoption Soars",
+            source: "CryptoNews",
+            time: "9 hours ago",
+            summary: "Ethereum ETFs recorded their largest weekly inflows since launch, with $2.3B in net purchases. ETH price surged 8.5% to $3,485 as institutional demand grows rapidly.",
+            tags: ["Ethereum", "ETF", "Crypto", "Institutional"],
             breaking: false
         }
     ];
-    
-    newsContainer.innerHTML = '';
     
     items.forEach((news, index) => {
         const newsDiv = document.createElement('article');
@@ -454,7 +492,7 @@ function populateNews(newsItems = null) {
         newsContainer.appendChild(newsDiv);
     });
     
-    console.log(`✅ Added ${items.length} news items`);
+    console.log(`✅ Added exactly ${items.length} unique news items`);
 }
 
 function setupEventListeners() {
@@ -687,6 +725,14 @@ function addBreakingNews() {
             time: "5 minutes ago",
             summary: "Security incident affects millions of users, company stock down 8% in after-hours trading as investigation begins.",
             tags: ["Breaking", "Tech", "Security"],
+            breaking: true
+        },
+        {
+            title: "ALERT: Gold Hits New All-Time High Above $2,550",
+            source: "MarketWatch",
+            time: "3 minutes ago",
+            summary: "Precious metals surge on safe-haven demand amid geopolitical tensions. Silver and platinum also posting significant gains.",
+            tags: ["Breaking", "Gold", "ATH", "Safe Haven"],
             breaking: true
         }
     ];

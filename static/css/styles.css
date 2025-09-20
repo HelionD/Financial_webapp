@@ -360,7 +360,7 @@ body {
   transition: all var(--transition-normal);
   position: relative;
   overflow: hidden;
-  min-height: 650px;
+  min-height: 720px;
   display: flex;
   flex-direction: column;
 }
@@ -515,14 +515,14 @@ body {
   color: var(--accent-blue);
 }
 
-/* ===== PRICES GRID - IMPROVED LAYOUT ===== */
+/* ===== PRICES GRID - IMPROVED LAYOUT FOR 6 ITEMS ===== */
 .prices-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-lg);
   flex: 1;
-  min-height: 120px;
+  min-height: 180px;
 }
 
 .price-item {
@@ -639,7 +639,7 @@ body {
 .stat-value.negative { color: var(--negative); }
 .stat-value.neutral { color: var(--neutral); }
 
-/* ===== NEWS SECTION - IMPROVED LAYOUT ===== */
+/* ===== NEWS SECTION - IMPROVED LAYOUT FOR 9+ NEWS ===== */
 .news-controls {
   display: flex;
   gap: var(--spacing-sm);
@@ -649,6 +649,7 @@ body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--spacing-lg);
+  grid-auto-rows: minmax(200px, auto);
 }
 
 .news-item {
@@ -947,6 +948,10 @@ body {
   .news-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+  
+  .prices-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 @media (max-width: 768px) {
@@ -983,7 +988,7 @@ body {
   }
   
   .prices-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
     gap: var(--spacing-sm);
   }
   
@@ -1027,7 +1032,7 @@ body {
   
   .trading-card {
     padding: var(--spacing-md);
-    min-height: 500px;
+    min-height: 600px;
   }
   
   .chart-container {
