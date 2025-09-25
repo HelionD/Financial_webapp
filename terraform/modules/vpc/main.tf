@@ -53,17 +53,19 @@ resource "aws_subnet" "private_c" {
   }
 }
 
-# Default security group
+# Replace your security group in terraform/modules/vpc/main.tf
+
 resource "aws_security_group" "default" {
   name        = "${var.vpc_name}-sg"
   description = "Default security group for ${var.vpc_name}"
   vpc_id      = aws_vpc.dev_vpc.id
 
+  # SSH - CHANGE THIS IP TO YOUR IP ADDRESS!
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    cidr_blocks = ["YOUR_IP_HERE/32"]  # Replace YOUR_IP_HERE with your actual IP
   }
 
   ingress {
@@ -83,4 +85,43 @@ resource "aws_security_group" "default" {
   tags = {
     Name = "${var.vpc_name}-sg"
   }
+}
+# Add this to your terraform/modules/vpc/main.tf (after the VPC resource)
+
+# Internet Gateway
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.dev_vpc.id
+  tags = {
+    Name = "${var.vpc_name}-igw"
+  }
+}
+
+# Public Route Table
+resource "aws_route_table" "public" {
+  vpc_id = aws_vpc.dev_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.igw.id
+  }
+
+  tags = {
+    Name = "${var.vpc_name}-public-rt"
+  }
+}
+
+# Associate public subnets with public route table
+resource "aws_route_table_association" "public_a" {
+  subnet_id      = aws_subnet.public_a.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "public_b" {
+  subnet_id      = aws_subnet.public_b.id
+  route_table_id = aws_route_table.public.id
+}
+
+resource "aws_route_table_association" "public_c" {
+  subnet_id      = aws_subnet.public_c.id
+  route_table_id = aws_route_table.public.id
 }
