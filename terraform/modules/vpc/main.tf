@@ -1,6 +1,6 @@
 # Create the VPC
 resource "aws_vpc" "dev_vpc" {
-  cidr_block = var.cidr_block
+  cidr_block           = var.cidr_block
   enable_dns_support   = true
   enable_dns_hostnames = true
 
@@ -9,7 +9,15 @@ resource "aws_vpc" "dev_vpc" {
   }
 }
 
-# Public subnet in eu-west-1a
+# Internet Gateway
+resource "aws_internet_gateway" "igw" {
+  vpc_id = aws_vpc.dev_vpc.id
+  tags = {
+    Name = "${var.vpc_name}-igw"
+  }
+}
+
+# Public subnets
 resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.dev_vpc.id
   cidr_block              = var.subnet_cidrs["public_a"]
@@ -20,7 +28,6 @@ resource "aws_subnet" "public_a" {
   }
 }
 
-# Public subnet in eu-west-1b
 resource "aws_subnet" "public_b" {
   vpc_id                  = aws_vpc.dev_vpc.id
   cidr_block              = var.subnet_cidrs["public_b"]
@@ -31,7 +38,6 @@ resource "aws_subnet" "public_b" {
   }
 }
 
-# Public subnet in eu-west-1c
 resource "aws_subnet" "public_c" {
   vpc_id                  = aws_vpc.dev_vpc.id
   cidr_block              = var.subnet_cidrs["public_c"]
@@ -42,7 +48,7 @@ resource "aws_subnet" "public_c" {
   }
 }
 
-# Create private subnets
+# Private subnet
 resource "aws_subnet" "private_c" {
   vpc_id                  = aws_vpc.dev_vpc.id
   cidr_block              = var.subnet_cidrs["private_c"]
@@ -53,21 +59,21 @@ resource "aws_subnet" "private_c" {
   }
 }
 
-# Replace your security group in terraform/modules/vpc/main.tf
-
+# Security group
 resource "aws_security_group" "default" {
   name        = "${var.vpc_name}-sg"
   description = "Default security group for ${var.vpc_name}"
   vpc_id      = aws_vpc.dev_vpc.id
 
-  # SSH - CHANGE THIS IP TO YOUR IP ADDRESS!
+  # SSH access from your IP only
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["YOUR_IP_HERE/32"]  # Replace YOUR_IP_HERE with your actual IP
+    cidr_blocks = ["${var.my_ip}/32"]
   }
 
+  # HTTP access
   ingress {
     from_port   = 80
     to_port     = 80
@@ -75,6 +81,7 @@ resource "aws_security_group" "default" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
+  # All outbound traffic
   egress {
     from_port   = 0
     to_port     = 0
@@ -84,15 +91,6 @@ resource "aws_security_group" "default" {
 
   tags = {
     Name = "${var.vpc_name}-sg"
-  }
-}
-# Add this to your terraform/modules/vpc/main.tf (after the VPC resource)
-
-# Internet Gateway
-resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.dev_vpc.id
-  tags = {
-    Name = "${var.vpc_name}-igw"
   }
 }
 

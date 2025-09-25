@@ -17,3 +17,23 @@ variable "subnet_cidrs" {
 variable "subnet_regions" {
   type = list(string)
 }
+
+variable "instance_type" {
+  type = string
+}
+
+variable "key_name" {
+  type = string
+}
+
+variable "env" {
+  type = string
+}
+
+variable "my_ip" {
+  type = string
+}
+
+variable "tags" {
+  type = map(string)
+}

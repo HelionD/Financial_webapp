@@ -3,11 +3,6 @@ variable "vpc_name" {
   type        = string
 }
 
-variable "region" {
-  description = "AWS region to deploy resources"
-  type        = string 
-}
-
 variable "cidr_block" {
   description = "CIDR block for the VPC"
   type        = string
@@ -21,4 +16,9 @@ variable "subnet_regions" {
 variable "subnet_cidrs" {
   description = "Map of subnet CIDRs"
   type        = map(string)
+}
+
+variable "my_ip" {
+  description = "Your IP address for SSH access"
+  type        = string
 }

@@ -1,15 +1,5 @@
-variable "region" {
-  description = "The AWS region to deploy resources in"
-  type        = string
-}
-
 variable "instance_type" {
   description = "The type of instance to create"
-  type        = string
-}
-
-variable "ami_id" {
-  description = "The AMI ID to use for the instance"
   type        = string
 }
 
@@ -27,6 +17,11 @@ variable "subnet_id" {
 variable "security_group_ids" {
   description = "List of security group IDs to associate with the instances"
   type        = list(string)
+}
+
+variable "iam_instance_profile" {
+  description = "The IAM instance profile name to attach to EC2 instances"
+  type        = string
 }
 
 variable "tags" {
