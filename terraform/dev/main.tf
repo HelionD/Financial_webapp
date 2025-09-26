@@ -8,6 +8,7 @@ module "vpc" {
   cidr_block     = var.cidr_block
   subnet_cidrs   = var.subnet_cidrs
   subnet_regions = var.subnet_regions
+  my_ip          = var.my_ip
 }
 
 module "s3" {
@@ -29,6 +30,7 @@ module "ec2" {
   ami_id               = var.ami_id
   key_name             = var.key_name
   subnet_id            = module.vpc.public_subnet_ids
+  security_group_ids   = [module.vpc.default_sg_id]
   iam_instance_profile = module.iam.iam_instance_profile_name
   tags                 = var.tags
   depends_on           = [module.iam]
