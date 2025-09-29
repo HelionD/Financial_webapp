@@ -50,7 +50,7 @@ Client → API Gateway → ┌── Auth Service → Database
 
 This project follows a **three-stage progressive DevOps approach**:
 
-### 🔧 1. Development Environment (**Current Stage**)
+### 🔧 1. Development Environment (**Done**)
 
 **Purpose**: Fast development cycles and feature validation
 
@@ -58,7 +58,7 @@ This project follows a **three-stage progressive DevOps approach**:
 - **Compute**: Single AWS EC2 instance (t2.micro)
 - **Storage**: In-memory data (no database)
 - **Networking**: Basic VPC with public subnet
-- **Security**: SSH access restricted to developer IP
+- **Security**: SSH access from every IP, used for general Dev Environment deployments
 - **CI/CD**: GitHub Actions for rapid builds and deployment
 - **IaC**: Terraform modules for AWS resources (VPC, EC2, S3, IAM)
 
@@ -68,7 +68,7 @@ This project follows a **three-stage progressive DevOps approach**:
 - ✅ Basic containerization with Docker
 - ✅ Terraform module structure establishment
 
-### 🧪 2. QA Environment (**Next Phase**)
+### 🧪 2. QA Environment (**Current Phase**)
 
 **Purpose**: Kubernetes adoption and monitoring excellence
 
