@@ -1,11 +1,3 @@
-# main.tf
-# This creates your EKS cluster and all the permissions it needs
-
-# ------------------------------------------------------------------------------
-# STEP 1: Create a role for the EKS control plane
-# Think of this as giving EKS permission to manage your cluster
-# ------------------------------------------------------------------------------
-
 resource "aws_iam_role" "cluster_role" {
   name = "${var.cluster_name}-cluster-role"
 
@@ -28,11 +20,6 @@ resource "aws_iam_role_policy_attachment" "cluster_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
-# ------------------------------------------------------------------------------
-# STEP 2: Create a role for the worker nodes (your actual servers)
-# These are the machines that will run your containers
-# ------------------------------------------------------------------------------
-
 resource "aws_iam_role" "node_role" {
   name = "${var.cluster_name}-node-role"
 
@@ -48,8 +35,6 @@ resource "aws_iam_role" "node_role" {
     }]
   })
 }
-
-# These three policies give your nodes the permissions they need:
 
 # 1. Basic worker node permissions
 resource "aws_iam_role_policy_attachment" "node_worker_policy" {
@@ -69,11 +54,6 @@ resource "aws_iam_role_policy_attachment" "node_ecr_policy" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 
-# ------------------------------------------------------------------------------
-# STEP 3: Create the actual EKS cluster
-# This is the brain that orchestrates everything
-# ------------------------------------------------------------------------------
-
 resource "aws_eks_cluster" "main" {
   name     = var.cluster_name
   role_arn = aws_iam_role.cluster_role.arn
@@ -85,11 +65,6 @@ resource "aws_eks_cluster" "main" {
   # Make sure the permissions are set up before creating the cluster
   depends_on = [aws_iam_role_policy_attachment.cluster_policy]
 }
-
-# ------------------------------------------------------------------------------
-# STEP 4: Create the worker nodes
-# These are the actual EC2 instances that run your applications
-# ------------------------------------------------------------------------------
 
 resource "aws_eks_node_group" "main" {
   cluster_name    = aws_eks_cluster.main.name

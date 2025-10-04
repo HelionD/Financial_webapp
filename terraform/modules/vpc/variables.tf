@@ -14,7 +14,7 @@ variable "subnet_regions" {
 }
 
 variable "subnet_cidrs" {
-  description = "Map of subnet CIDRs"
+  description = "Map of subnet CIDRs (public_a, public_b, public_c, private_a, private_b, private_c)"
   type        = map(string)
 }
 

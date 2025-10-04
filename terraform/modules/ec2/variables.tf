@@ -3,6 +3,12 @@ variable "instance_type" {
   type        = string
 }
 
+variable "ami_id" {
+  description = "The AMI ID to use for the instance (optional - will use latest Amazon Linux 2 if not provided)"
+  type        = string
+  default     = null
+}
+
 variable "key_name" {
   description = "The name of the key pair to use for the instance"
   type        = string
@@ -28,4 +34,10 @@ variable "tags" {
   description = "A map of tags to assign to the resource"
   type        = map(string)
   default     = {}
+}
+
+variable "name_suffix" {
+  description = "Suffix to make instance Name unique"
+  type        = string
+  default     = ""
 }

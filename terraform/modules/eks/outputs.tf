@@ -12,6 +12,12 @@ output "cluster_endpoint" {
   # You'll use this with: aws eks update-kubeconfig --name <cluster_name>
 }
 
+# What the qa environment expects
+output "cluster_status" {
+  value       = aws_eks_cluster.main.status
+  description = "Status of your EKS cluster (should be ACTIVE when ready)"
+}
+
 output "cluster_security_group_id" {
   value       = aws_eks_cluster.main.vpc_config[0].cluster_security_group_id
   description = "Security group that EKS created for the cluster"

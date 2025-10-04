@@ -12,17 +12,19 @@ resource "aws_vpc" "dev_vpc" {
 # Internet Gateway
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.dev_vpc.id
+
   tags = {
     Name = "${var.vpc_name}-igw"
   }
 }
 
-# Public subnets
+# Public Subnets
 resource "aws_subnet" "public_a" {
   vpc_id                  = aws_vpc.dev_vpc.id
   cidr_block              = var.subnet_cidrs["public_a"]
   availability_zone       = var.subnet_regions[0]
   map_public_ip_on_launch = true
+
   tags = {
     Name = "public-${var.subnet_regions[0]}"
   }
@@ -33,6 +35,7 @@ resource "aws_subnet" "public_b" {
   cidr_block              = var.subnet_cidrs["public_b"]
   availability_zone       = var.subnet_regions[1]
   map_public_ip_on_launch = true
+
   tags = {
     Name = "public-${var.subnet_regions[1]}"
   }
@@ -43,23 +46,47 @@ resource "aws_subnet" "public_c" {
   cidr_block              = var.subnet_cidrs["public_c"]
   availability_zone       = var.subnet_regions[2]
   map_public_ip_on_launch = true
+
   tags = {
     Name = "public-${var.subnet_regions[2]}"
   }
 }
 
-# Private subnet
+# Private Subnets
+resource "aws_subnet" "private_a" {
+  vpc_id                  = aws_vpc.dev_vpc.id
+  cidr_block              = var.subnet_cidrs["private_a"]
+  availability_zone       = var.subnet_regions[0]
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "private-${var.subnet_regions[0]}"
+  }
+}
+
+resource "aws_subnet" "private_b" {
+  vpc_id                  = aws_vpc.dev_vpc.id
+  cidr_block              = var.subnet_cidrs["private_b"]
+  availability_zone       = var.subnet_regions[1]
+  map_public_ip_on_launch = false
+
+  tags = {
+    Name = "private-${var.subnet_regions[1]}"
+  }
+}
+
 resource "aws_subnet" "private_c" {
   vpc_id                  = aws_vpc.dev_vpc.id
   cidr_block              = var.subnet_cidrs["private_c"]
   availability_zone       = var.subnet_regions[2]
   map_public_ip_on_launch = false
+
   tags = {
     Name = "private-${var.subnet_regions[2]}"
   }
 }
 
-# Security group
+# Security Group
 resource "aws_security_group" "default" {
   name        = "${var.vpc_name}-sg"
   description = "Default security group for ${var.vpc_name}"

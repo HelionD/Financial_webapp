@@ -8,8 +8,13 @@ output "iam_role_arn" {
   value       = aws_iam_role.ec2_role.arn
 }
 
+output "iam_instance_profile_name" {
+  description = "The instance profile name to attach to EC2"
+  value       = aws_iam_instance_profile.ec2_instance_profile.name
+}
+
 output "iam_instance_profile" {
-  description = "The instance profile to attach to EC2"
+  description = "The instance profile to attach to EC2 (old name for backward compatibility)"
   value       = aws_iam_instance_profile.ec2_instance_profile.name
 }
 

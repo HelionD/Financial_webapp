@@ -37,6 +37,7 @@ variable "my_ip" {
 variable "tags" {
   type = map(string)
 }
+
 variable "ami_id" {
   type = string
 }

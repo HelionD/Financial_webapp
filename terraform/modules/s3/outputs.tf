@@ -7,5 +7,6 @@ output "bucket_name" {
 }
 
 output "bucket_arn" {
-  value = aws_s3_bucket.bucket.arn
+  description = "ARN of the S3 bucket"
+  value       = aws_s3_bucket.dev_bucket_hd_100202025.arn
 }

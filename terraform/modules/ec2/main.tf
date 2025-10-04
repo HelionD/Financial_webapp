@@ -18,6 +18,6 @@ resource "aws_instance" "primary_instance" {
   iam_instance_profile   = var.iam_instance_profile
   
   tags = merge(var.tags, {
-    Name = "primary-instance-${count.index + 1}"
-  })
+  Name = "primary-instance-${var.name_suffix}"
+})
 }
