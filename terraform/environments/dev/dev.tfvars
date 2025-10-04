@@ -2,7 +2,7 @@ region       = "eu-west-1"
 vpc_name     = "dev-vpc"
 cidr_block   = "10.0.0.0/16"
 
-my_ip = "YOUR_PUBLIC_IP"  # replace this with your real IP
+my_ip = "0.0.0.0/24"
 
 subnet_regions = ["eu-west-1a", "eu-west-1b", "eu-west-1c"]
 subnet_cidrs = {

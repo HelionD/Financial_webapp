@@ -26,7 +26,7 @@ module "iam" {
   s3_bucket_arn = module.s3.bucket_arn
 }
 
-# EC2 Module - explicitly create one instance per public subnet
+# EC2 Module - one instance in each public subnet
 module "ec2_public_a" {
   source               = "../../modules/ec2"
   instance_type        = var.instance_type

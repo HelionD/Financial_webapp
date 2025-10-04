@@ -1,5 +1,5 @@
 # Create the VPC
-resource "aws_vpc" "dev_vpc" {
+resource "aws_vpc" "vpc_04102025" {
   cidr_block           = var.cidr_block
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -86,8 +86,31 @@ resource "aws_subnet" "private_c" {
   }
 }
 
+# Elastic IP for NAT Gateway
+resource "aws_eip" "nat" {
+  domain = "vpc"
+
+  tags = {
+    Name = "${var.vpc_name}-nat-eip"
+  }
+
+  depends_on = [aws_internet_gateway.igw]
+}
+
+# NAT Gateway
+resource "aws_nat_gateway" "nat_gw" {
+  allocation_id = aws_eip.nat.id
+  subnet_id     = aws_subnet.public_a.id
+
+  tags = {
+    Name = "${var.vpc_name}-nat"
+  }
+
+  depends_on = [aws_internet_gateway.igw]
+}
+
 # Security Group
-resource "aws_security_group" "default" {
+resource "aws_security_group" "sg" {
   name        = "${var.vpc_name}-sg"
   description = "Default security group for ${var.vpc_name}"
   vpc_id      = aws_vpc.dev_vpc.id
@@ -135,6 +158,20 @@ resource "aws_route_table" "public" {
   }
 }
 
+# Private Route Table
+resource "aws_route_table" "private" {
+  vpc_id = aws_vpc.dev_vpc.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.main.id
+  }
+
+  tags = {
+    Name = "${var.vpc_name}-private-rt"
+  }
+}
+
 # Associate public subnets with public route table
 resource "aws_route_table_association" "public_a" {
   subnet_id      = aws_subnet.public_a.id
@@ -149,4 +186,20 @@ resource "aws_route_table_association" "public_b" {
 resource "aws_route_table_association" "public_c" {
   subnet_id      = aws_subnet.public_c.id
   route_table_id = aws_route_table.public.id
+}
+
+# Associate private subnets with private route table
+resource "aws_route_table_association" "private_a" {
+  subnet_id      = aws_subnet.private_a.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_b" {
+  subnet_id      = aws_subnet.private_b.id
+  route_table_id = aws_route_table.private.id
+}
+
+resource "aws_route_table_association" "private_c" {
+  subnet_id      = aws_subnet.private_c.id
+  route_table_id = aws_route_table.private.id
 }

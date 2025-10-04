@@ -1,6 +1,3 @@
-# outputs.tf
-# After Terraform creates your cluster, these are the values you'll need
-
 output "cluster_name" {
   value       = aws_eks_cluster.main.name
   description = "The name of your EKS cluster"
@@ -12,7 +9,6 @@ output "cluster_endpoint" {
   # You'll use this with: aws eks update-kubeconfig --name <cluster_name>
 }
 
-# What the qa environment expects
 output "cluster_status" {
   value       = aws_eks_cluster.main.status
   description = "Status of your EKS cluster (should be ACTIVE when ready)"

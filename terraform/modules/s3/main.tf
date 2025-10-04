@@ -1,4 +1,4 @@
-resource "aws_s3_bucket" "dev_bucket_hd_100202025" {
+resource "aws_s3_bucket" "bucket_hd_04102025" {
   bucket = var.bucket_name
 
   tags = {

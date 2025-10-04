@@ -8,5 +8,5 @@ output "bucket_name" {
 
 output "bucket_arn" {
   description = "ARN of the S3 bucket"
-  value       = aws_s3_bucket.dev_bucket_hd_100202025.arn
+  value       = aws_s3_bucket.bucket_hd_04102025.arn
 }

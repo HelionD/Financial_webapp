@@ -1,10 +1,3 @@
-# variables.tf - QA Environment
-# All the inputs you can customize
-
-# ============================================================================
-# GENERAL SETTINGS
-# ============================================================================
-
 variable "region" {
   type        = string
   description = "Which AWS region? (e.g., eu-west-1)"
@@ -25,9 +18,7 @@ variable "tags" {
   description = "Tags to add to all resources"
 }
 
-# ============================================================================
 # VPC / NETWORK SETTINGS
-# ============================================================================
 
 variable "vpc_name" {
   type        = string
@@ -49,9 +40,7 @@ variable "subnet_regions" {
   description = "Which availability zones to use"
 }
 
-# ============================================================================
-# EC2 SETTINGS (Traditional Server)
-# ============================================================================
+# EC2 SETTINGS
 
 variable "instance_type" {
   type        = string
@@ -68,9 +57,7 @@ variable "key_name" {
   description = "SSH key pair name for connecting to EC2"
 }
 
-# ============================================================================
-# EKS SETTINGS (Kubernetes Cluster)
-# ============================================================================
+# EKS SETTINGS
 
 variable "eks_desired_size" {
   type        = number

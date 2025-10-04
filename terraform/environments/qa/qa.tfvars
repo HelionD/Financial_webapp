@@ -1,12 +1,8 @@
-# qa.tfvars
-# Your actual QA environment values
-
-# Basic settings
 region = "eu-west-1"
 env    = "qa"
 
-# Your IP for SSH access (update this with your actual IP)
-my_ip = "YOUR_IP_HERE/32"  # Get from whatismyip.com
+# General IP settings for SSH access
+my_ip = "0.0.0.0/32"
 
 # VPC network configuration
 vpc_name   = "qa-vpc"
@@ -22,13 +18,13 @@ subnet_cidrs = {
   private_c = "10.1.12.0/24"  # EKS needs at least 2 private subnets
 }
 
-# EC2 instance settings (your traditional server)
+# EC2 instance settings
 instance_type = "t3.micro"
-ami_id        = "ami-0c55b159cbfafe1f0"  # Double-check this AMI exists in eu-west-1
+ami_id        = "ami-0c55b159cbfafe1f0"
 key_name      = "qa-key-pair"
 
-# EKS cluster settings (your Kubernetes cluster)
-eks_desired_size  = 2    # Start with 2 nodes
+# EKS cluster settings
+eks_desired_size  = 2
 eks_min_size      = 1    # Can scale down to 1
 eks_max_size      = 4    # Can scale up to 4
 eks_instance_type = "t3.medium"
