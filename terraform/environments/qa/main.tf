@@ -56,3 +56,10 @@ module "eks" {
   
   depends_on = [module.vpc]
 }
+
+module "ecr" {
+  source          = "../../modules/ecr"
+  repository_name = "${var.env}-ecr-repo"
+  tags            = var.tags
+  depends_on      = [module.iam]
+}

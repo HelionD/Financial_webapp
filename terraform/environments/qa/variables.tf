@@ -82,3 +82,9 @@ variable "eks_instance_type" {
   default     = "t3.medium"
   description = "Size of EKS worker nodes (t3.medium is good for QA)"
 }
+
+# ECR SETTINGS
+variable "ecr_repository_name" {
+  type        = string
+  description = "Name of the ECR repository"
+}

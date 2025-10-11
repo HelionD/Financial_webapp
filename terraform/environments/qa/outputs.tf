@@ -42,3 +42,18 @@ output "eks_cluster_status" {
   value       = module.eks.cluster_status
   description = "Status of your EKS cluster (should be ACTIVE)"
 }
+
+output "ecr_repository_name" {
+  value       = module.ecr.ecr_repo.repository_name
+  description = "Name of the ECR repository"
+}
+
+output "ecr_repository_url" {
+  value       = module.ecr.ecr_repo_url
+  description = "URL of the ECR repository"
+}
+
+output "ecr_repository_arn" {
+  value       = module.ecr.ecr_repo_arn
+  description = "ARN of the ECR repository"
+}

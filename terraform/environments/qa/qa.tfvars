@@ -2,7 +2,7 @@ region = "eu-west-1"
 env    = "qa"
 
 # General IP settings for SSH access
-my_ip = "0.0.0.0/32"
+my_ip = "0.0.0.0"
 
 # VPC network configuration
 vpc_name   = "qa-vpc"
@@ -28,6 +28,11 @@ eks_desired_size  = 2
 eks_min_size      = 1    # Can scale down to 1
 eks_max_size      = 4    # Can scale up to 4
 eks_instance_type = "t3.medium"
+
+# ECR SETTINGS
+ecr_repository_name = "${var.env}-ecr-repo"
+image_tag_mutability = "MUTABLE"
+scan_on_push         = true
 
 # Tags for all resources
 tags = {

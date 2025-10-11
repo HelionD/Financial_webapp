@@ -1,5 +1,5 @@
 # Create the VPC
-resource "aws_vpc" "vpc_04102025" {
+resource "aws_vpc" "financial_webapp_vpc" {
   cidr_block           = var.cidr_block
   enable_dns_support   = true
   enable_dns_hostnames = true
@@ -11,7 +11,7 @@ resource "aws_vpc" "vpc_04102025" {
 
 # Internet Gateway
 resource "aws_internet_gateway" "igw" {
-  vpc_id = aws_vpc.dev_vpc.id
+  vpc_id = aws_vpc.financial_webapp_vpc.id
 
   tags = {
     Name = "${var.vpc_name}-igw"
@@ -20,7 +20,7 @@ resource "aws_internet_gateway" "igw" {
 
 # Public Subnets
 resource "aws_subnet" "public_a" {
-  vpc_id                  = aws_vpc.dev_vpc.id
+  vpc_id                  = aws_vpc.financial_webapp_vpc.id
   cidr_block              = var.subnet_cidrs["public_a"]
   availability_zone       = var.subnet_regions[0]
   map_public_ip_on_launch = true
@@ -31,7 +31,7 @@ resource "aws_subnet" "public_a" {
 }
 
 resource "aws_subnet" "public_b" {
-  vpc_id                  = aws_vpc.dev_vpc.id
+  vpc_id                  = aws_vpc.financial_webapp_vpc.id
   cidr_block              = var.subnet_cidrs["public_b"]
   availability_zone       = var.subnet_regions[1]
   map_public_ip_on_launch = true
@@ -42,7 +42,7 @@ resource "aws_subnet" "public_b" {
 }
 
 resource "aws_subnet" "public_c" {
-  vpc_id                  = aws_vpc.dev_vpc.id
+  vpc_id                  = aws_vpc.financial_webapp_vpc.id
   cidr_block              = var.subnet_cidrs["public_c"]
   availability_zone       = var.subnet_regions[2]
   map_public_ip_on_launch = true
@@ -54,7 +54,7 @@ resource "aws_subnet" "public_c" {
 
 # Private Subnets
 resource "aws_subnet" "private_a" {
-  vpc_id                  = aws_vpc.dev_vpc.id
+  vpc_id                  = aws_vpc.financial_webapp_vpc.id
   cidr_block              = var.subnet_cidrs["private_a"]
   availability_zone       = var.subnet_regions[0]
   map_public_ip_on_launch = false
@@ -65,7 +65,7 @@ resource "aws_subnet" "private_a" {
 }
 
 resource "aws_subnet" "private_b" {
-  vpc_id                  = aws_vpc.dev_vpc.id
+  vpc_id                  = aws_vpc.financial_webapp_vpc.id
   cidr_block              = var.subnet_cidrs["private_b"]
   availability_zone       = var.subnet_regions[1]
   map_public_ip_on_launch = false
@@ -76,7 +76,7 @@ resource "aws_subnet" "private_b" {
 }
 
 resource "aws_subnet" "private_c" {
-  vpc_id                  = aws_vpc.dev_vpc.id
+  vpc_id                  = aws_vpc.financial_webapp_vpc.id
   cidr_block              = var.subnet_cidrs["private_c"]
   availability_zone       = var.subnet_regions[2]
   map_public_ip_on_launch = false
@@ -97,8 +97,8 @@ resource "aws_eip" "nat" {
   depends_on = [aws_internet_gateway.igw]
 }
 
-# NAT Gateway
-resource "aws_nat_gateway" "nat_gw" {
+# NAT Gateway (in first public subnet)
+resource "aws_nat_gateway" "main" {
   allocation_id = aws_eip.nat.id
   subnet_id     = aws_subnet.public_a.id
 
@@ -110,17 +110,17 @@ resource "aws_nat_gateway" "nat_gw" {
 }
 
 # Security Group
-resource "aws_security_group" "sg" {
+resource "aws_security_group" "default" {
   name        = "${var.vpc_name}-sg"
   description = "Default security group for ${var.vpc_name}"
-  vpc_id      = aws_vpc.dev_vpc.id
+  vpc_id      = aws_vpc.financial_webapp_vpc.id
 
-  # SSH access from your IP only
+  # SSH access - OPEN TO WORLD (for testing only!)
   ingress {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["${var.my_ip}/32"]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # HTTP access
@@ -146,7 +146,7 @@ resource "aws_security_group" "sg" {
 
 # Public Route Table
 resource "aws_route_table" "public" {
-  vpc_id = aws_vpc.dev_vpc.id
+  vpc_id = aws_vpc.financial_webapp_vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
@@ -160,7 +160,7 @@ resource "aws_route_table" "public" {
 
 # Private Route Table
 resource "aws_route_table" "private" {
-  vpc_id = aws_vpc.dev_vpc.id
+  vpc_id = aws_vpc.financial_webapp_vpc.id
 
   route {
     cidr_block     = "0.0.0.0/0"
