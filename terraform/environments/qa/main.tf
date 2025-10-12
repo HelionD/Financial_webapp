@@ -39,7 +39,7 @@ module "ec2" {
   depends_on           = [module.iam]
 }
 
-# Create EKS cluster 
+# EKS cluster 
 module "eks" {
   source = "../../modules/eks"
   
@@ -56,10 +56,10 @@ module "eks" {
   
   depends_on = [module.vpc]
 }
-
+ # ECR for container images
 module "ecr" {
   source          = "../../modules/ecr"
-  repository_name = "${var.env}-ecr-repo"
+  ecr_repository_name = "${var.env}-ecr-repo"
   tags            = var.tags
   depends_on      = [module.iam]
 }
