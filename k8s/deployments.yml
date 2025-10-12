@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: finance-webapp
+  namespace: financial-app-k8s
+  labels:
+    app: finance-webapp
+    environment: qa
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: finance-webapp
+  template:
+    metadata:
+      labels:
+        app: finance-webapp
+        environment: qa
+    spec:
+      containers:
+        - name: finance-webapp
+          image: 1734532754001.dkr.ecr.eu-west-1.amazonaws.com/finance_webapp:v1
+          ports:
+            - containerPort: 5000
+              protocol: TCP
+          # Load environment variables from ConfigMap and Secret
+          envFrom:
+            - configMapRef:
+                name: finance-webapp-config-qa
+            - secretRef:
+                name: finance-webapp-secrets-qa
+          # Health checks
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          # Resource limits
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      restartPolicy: Always

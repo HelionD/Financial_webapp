@@ -1,0 +1,30 @@
+# Use Python 3.10 slim for QA environment
+FROM python:3.10-slim
+
+# Set working directory
+WORKDIR /app
+
+# Set Flask environment variables for QA
+ENV FLASK_APP=app.py
+ENV FLASK_ENV=qa
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Copy requirements first (for Docker layer caching)
+COPY ../requirements.txt .
+
+# Upgrade pip and install dependencies
+RUN pip install --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the application code
+COPY . .
+
+# Expose Flask port
+EXPOSE 5000
+
+# Healthcheck (optional but useful in QA)
+HEALTHCHECK --interval=30s --timeout=5s CMD curl -f http://localhost:5000/ || exit 1
+
+# Start Flask app
+CMD ["flask", "run", "--host=0.0.0.0"]
